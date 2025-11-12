@@ -300,6 +300,77 @@ export default function CandleStudioApp() {
 
   const copy = useCallback(async () => { try { await navigator.clipboard.writeText(summary); alert("已复制批次配方到剪贴板"); } catch { alert("复制失败，请手动选择文本复制"); } }, [summary]);
 
+  // 导出数据
+  const exportData = useCallback(() => {
+    try {
+      const data = {
+        version: "1.0",
+        exportDate: new Date().toISOString(),
+        data: {
+          tplId, variantIndex, waterStr, countStr, factorStr, flPctStr,
+          dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor,
+          has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite,
+          price,
+        }
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `candle-studio-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('数据已导出！文件已下载到你的电脑。');
+    } catch (error) {
+      alert('导出失败，请重试');
+    }
+  }, [tplId, variantIndex, waterStr, countStr, factorStr, flPctStr, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor, has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, price]);
+
+  // 导入数据
+  const importData = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const content = event.target?.result as string;
+          const imported = JSON.parse(content);
+          if (!imported.data) throw new Error('Invalid file format');
+          const d = imported.data;
+          // 恢复所有状态
+          if (d.tplId) setTplId(d.tplId);
+          if (typeof d.variantIndex === 'number') setVariantIndex(d.variantIndex);
+          if (d.waterStr) setWaterStr(d.waterStr);
+          if (d.countStr) setCountStr(d.countStr);
+          if (d.factorStr) setFactorStr(d.factorStr);
+          if (d.flPctStr) setFlPctStr(d.flPctStr);
+          if (d.dyeMode) setDyeMode(d.dyeMode);
+          if (d.dyeBlockColor) setDyeBlockColor(d.dyeBlockColor);
+          if (typeof d.blockShade === 'number') setBlockShade(d.blockShade);
+          if (d.liquidPreset) setLiquidPreset(d.liquidPreset);
+          if (d.liquidColor) setLiquidColor(d.liquidColor);
+          if (typeof d.has464 === 'boolean') setHas464(d.has464);
+          if (typeof d.has454 === 'boolean') setHas454(d.has454);
+          if (typeof d.hasC3 === 'boolean') setHasC3(d.hasC3);
+          if (typeof d.hasBeeswaxYellow === 'boolean') setHasBeeswaxYellow(d.hasBeeswaxYellow);
+          if (typeof d.hasBeeswaxWhite === 'boolean') setHasBeeswaxWhite(d.hasBeeswaxWhite);
+          if (d.price) setPrice(d.price);
+          alert('数据导入成功！');
+        } catch (error) {
+          alert('导入失败，请确保文件格式正确');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }, []);
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white text-gray-900 pb-24 md:pb-6">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
@@ -309,7 +380,9 @@ export default function CandleStudioApp() {
             <p className="text-gray-500 mt-0.5 text-xs md:text-sm">选类型 → 选配方 → 输入水重/数量/单价 → 自动出克数与成本。优先你的库存（464/454/C3/黄蜂蜡/白蜂蜡）。</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => { localStorage.removeItem(LS_KEY); alert('已清空本地记录'); }} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm">清空记录</button>
+            <button onClick={importData} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50" title="从文件导入数据">📥 导入数据</button>
+            <button onClick={exportData} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50" title="导出数据到文件">💾 导出数据</button>
+            <button onClick={() => { if(confirm('确定要清空所有本地数据吗？')) { localStorage.removeItem(LS_KEY); window.location.reload(); } }} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">清空记录</button>
             <button onClick={copy} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm bg-black text-white hover:opacity-90">复制整批配方</button>
           </div>
         </div>
@@ -544,12 +617,18 @@ export default function CandleStudioApp() {
       </main>
 
       <div className="fixed md:hidden left-0 right-0 bottom-0 z-20 border-t bg-white/95 backdrop-blur px-4 py-2">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
-          <div>
-            <div className="text-[10px] text-gray-500">单只成本</div>
-            <div className="text-lg font-semibold">{costPerCandle.toFixed(2)} AUD</div>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div>
+              <div className="text-[10px] text-gray-500">单只成本</div>
+              <div className="text-lg font-semibold">{costPerCandle.toFixed(2)} AUD</div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={importData} className="rounded-lg border px-2 py-1 text-xs hover:bg-gray-50" title="导入数据">📥</button>
+              <button onClick={exportData} className="rounded-lg border px-2 py-1 text-xs hover:bg-gray-50" title="导出数据">💾</button>
+              <button onClick={copy} className="rounded-xl border px-3 py-2 text-sm bg-black text-white">复制配方</button>
+            </div>
           </div>
-          <button onClick={copy} className="rounded-xl border px-3 py-2 text-sm bg-black text-white">复制配方</button>
         </div>
       </div>
     </div>
