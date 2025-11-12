@@ -17,6 +17,7 @@ import {
   type LiquidColorName,
   type WaxKey,
 } from "./constants";
+import TipsSection from "./TipsSection";
 
 // ===== Types kept locally that refer to constants' types =====
 export type WaxName = "Soy" | "Coconut" | "Beeswax" | "Palm" | "Paraffin" | "Ice Flower";
@@ -534,7 +535,7 @@ export default function CandleStudioApp() {
             </label>
             <label className="block text-sm">水→蜡换算因子
               <input inputMode="decimal" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={factorStr} onChange={(e)=>setFactorStr(normalizeDecimal(e.target.value))} />
-              <div className="text-xs text-gray-400 mt-1">常用 1.15（大豆/椰子系经验）</div>
+              <div className="text-xs text-gray-400 mt-1">常用 1.15（大豆/椰子系经验）。提示：精确测量模具水重可提高计算准确性。</div>
             </label>
             <label className="block text-sm">香精负载(%)
               <input inputMode="decimal" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={flPctStr} onChange={(e)=>setFlPctStr(normalizeDecimal(e.target.value))} />
@@ -581,7 +582,7 @@ export default function CandleStudioApp() {
                   <div className="text-2xl font-semibold tabular-nums">{blockCount}</div>
                 </div>
                 <div className="rounded-xl bg-white border p-3 text-xs text-gray-600 md:col-span-2">
-                  经验：1 块 ≈ 3 kg 蜡（中深度）。建议先做 20–50 g 小样，逐步加深；深色可能需要更大芯号。
+                  <strong>专业建议：</strong>1 块 ≈ 3 kg 蜡（中深度）。建议先做 20–50 g 小样测试，逐步加深至目标色。深色可能需要更大芯号，避免隧道燃烧。色块需刨片后加入，充分搅拌确保均匀。
                 </div>
               </div>
       </div>
@@ -604,7 +605,7 @@ export default function CandleStudioApp() {
                   {(LIQUID_PRESETS as readonly {id: LiquidPresetId; label: string; pct: number}[]).map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                 </select>
                 <div className="rounded-xl border p-3 text-sm bg-gray-50">预计液体染料：<span className="font-mono text-lg">{liquidG}</span> g</div>
-                <div className="text-[11px] text-gray-500">参考：10 ml ≈ 1 kg 蜡（中深度），不同颜色会有差异。</div>
+                <div className="text-[11px] text-gray-500">参考：10 ml ≈ 1 kg 蜡（中深度），不同颜色会有差异。建议先做小样测试，确认颜色后再大批量制作。</div>
               </div>
             </div>
           )}
@@ -621,12 +622,13 @@ export default function CandleStudioApp() {
               {dyeMode==='block' ? (<div className="mt-2">色块：{dyeBlockColor} × <span className="font-mono">{blockCount}</span> 块</div>) : (<div className="mt-2">液体染料：<span className="font-mono">{liquidG}</span> g</div>)}
             </div>
             <div className="text-xs text-gray-600 leading-5">
-              <div className="font-medium text-gray-800 mb-1">流程建议</div>
-              <div>1) 70–75°C 完全融蜡 → 在 {tpl.temp.addFO}°C 左右加入香精（搅拌 1–2 分钟）。</div>
-              <div>2) 染料：液体可在加香前后皆可加入；色块刨片逐步加入至目标色。</div>
-              <div>3) 浇注：约 {tpl.temp.pour}°C（容器 55–60°C；模具 58–62°C；裱花 56–58°C；淋面 50–55°C）。</div>
-              <div>4) 模具类如出现顶部凹陷，待冷却后进行二次回倒；冰花蜡需均匀缓冷以强化晶体纹理。</div>
-              <div>5) 做燃烧测试：记录芯号、燃面温度、蘑菇头、隧道/冒烟情况。</div>
+              <div className="font-medium text-gray-800 mb-1">专业流程建议</div>
+              <div>1) <strong>融蜡</strong>：70–75°C 完全融蜡，使用温度计监控，避免过热（大豆蜡 65-75°C，椰子蜡 70-80°C，蜂蜡 75-85°C）。</div>
+              <div>2) <strong>加香</strong>：在 {tpl.temp.addFO}°C 左右加入香精，搅拌 1–2 分钟确保均匀。温度过高会挥发香味，过低会混合不均。</div>
+              <div>3) <strong>上色</strong>：液体染料在加香前后皆可加入；色块需刨片后逐步加入，先做 20-50g 小样测试深浅。</div>
+              <div>4) <strong>浇注</strong>：约 {tpl.temp.pour}°C 缓慢倒入（容器 55–60°C；模具 58–62°C；裱花 56–58°C；淋面 50–55°C）。避免产生气泡。</div>
+              <div>5) <strong>冷却</strong>：室温下静置 24-48 小时，避免移动。模具类如出现顶部凹陷，待冷却后进行二次回倒。</div>
+              <div>6) <strong>测试</strong>：首次燃烧至少 2-3 小时形成完整熔池，记录芯号、燃面温度、蘑菇头、隧道/冒烟情况。</div>
             </div>
           </div>
 
@@ -649,6 +651,8 @@ export default function CandleStudioApp() {
             <button onClick={copy} className="rounded-xl border px-3 py-2 text-sm bg-black text-white hover:opacity-90">复制整批配方</button>
           </div>
         </Section>
+
+        <TipsSection />
       </main>
 
       <div className="fixed md:hidden left-0 right-0 bottom-0 z-20 border-t bg-white/95 backdrop-blur px-4 py-2">
