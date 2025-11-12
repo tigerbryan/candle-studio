@@ -67,21 +67,44 @@ export const LIQUID_PRESETS = [
 
 export type LiquidPresetId = typeof LIQUID_PRESETS[number]["id"];
 
+// ===== 液体染料颜色（基于 Amazon 产品）=====
 export const LIQUID_DYE_COLORS = [
-  { name: "Pink", hex: "#FFB6C1" },
+  // Red / Pink 系列
   { name: "Red", hex: "#DC143C" },
-  { name: "Orange", hex: "#FF8C00" },
-  { name: "Yellow", hex: "#FFD700" },
-  { name: "Lime", hex: "#32CD32" },
-  { name: "Green", hex: "#228B22" },
-  { name: "Teal", hex: "#008B8B" },
-  { name: "Cyan", hex: "#00CED1" },
+  { name: "Pink", hex: "#FFB6C1" },
+  { name: "Rose", hex: "#FF69B4" },
+  { name: "Burgundy", hex: "#800020" },
+  { name: "Maroon", hex: "#800000" },
+  { name: "Magenta", hex: "#C71585" },
+  // Blue / Purple 系列
   { name: "Blue", hex: "#4169E1" },
   { name: "Navy", hex: "#000080" },
+  { name: "Sky Blue", hex: "#87CEEB" },
+  { name: "Teal", hex: "#008080" },
+  { name: "Turquoise", hex: "#40E0D0" },
+  { name: "Cyan", hex: "#00CED1" },
   { name: "Purple", hex: "#8B008B" },
-  { name: "Magenta", hex: "#C71585" },
+  { name: "Lavender", hex: "#E6E6FA" },
+  { name: "Violet", hex: "#8A2BE2" },
+  // Green 系列
+  { name: "Green", hex: "#228B22" },
+  { name: "Lime", hex: "#32CD32" },
+  { name: "Forest Green", hex: "#228B22" },
+  { name: "Mint", hex: "#98FB98" },
+  { name: "Olive", hex: "#808000" },
+  // Yellow / Orange 系列
+  { name: "Yellow", hex: "#FFD700" },
+  { name: "Orange", hex: "#FF8C00" },
+  { name: "Gold", hex: "#FFD700" },
+  { name: "Amber", hex: "#FFBF00" },
+  { name: "Peach", hex: "#FFE5B4" },
+  // Brown / Neutral 系列
   { name: "Brown", hex: "#8B4513" },
+  { name: "Tan", hex: "#D2B48C" },
+  { name: "Beige", hex: "#F5F5DC" },
+  // Black / White / Gray 系列
   { name: "Black", hex: "#1a1a1a" },
+  { name: "White", hex: "#F5F5F5" },
   { name: "Gray", hex: "#808080" },
 ] as const;
 

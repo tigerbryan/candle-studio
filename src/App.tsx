@@ -701,7 +701,7 @@ export default function CandleStudioApp() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   选择色块颜色（共 {DYE_BLOCK_COLORS.length} 种）
                 </label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 gap-3">
+                <div className="grid grid-cols-6 sm:grid-cols-7 md:grid-cols-9 gap-1.5 sm:gap-2">
                   {DYE_BLOCK_COLORS.map((color) => {
                     const isSelected = dyeBlockColor === color;
                     const displayColor = getShadeColor(SWATCH(color), blockShade);
@@ -710,23 +710,23 @@ export default function CandleStudioApp() {
                       <button
                         key={color}
                         onClick={() => setDyeBlockColor(color)}
-                        className={`relative rounded-xl border-2 p-3 transition-all duration-200 active:scale-95 ${
+                        className={`relative rounded-lg border-2 p-1.5 sm:p-2 transition-all duration-200 active:scale-95 ${
                           isSelected
-                            ? 'border-amber-500 ring-2 ring-amber-200 shadow-md scale-105'
+                            ? 'border-amber-500 ring-1 ring-amber-200 shadow-sm scale-105'
                             : 'border-gray-200 hover:border-amber-300 hover:shadow-sm'
                         }`}
                         title={color}
                       >
                         <div 
-                          className="w-full h-16 rounded-lg mb-2 border border-gray-300"
+                          className="w-full h-8 sm:h-10 md:h-12 rounded-md mb-1 border border-gray-300"
                           style={{ background: displayColor }}
                         />
-                        <div className="text-xs font-medium text-gray-700 text-center">
+                        <div className="text-[9px] sm:text-[10px] font-medium text-gray-700 text-center leading-tight line-clamp-1">
                           {color}
                         </div>
                         {isSelected && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-[10px]">✓</span>
+                          <div className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-amber-500 rounded-full flex items-center justify-center shadow-sm">
+                            <span className="text-white text-[8px] sm:text-[10px]">✓</span>
                           </div>
                         )}
                       </button>
@@ -809,13 +809,34 @@ export default function CandleStudioApp() {
           ) : (
             <div className="mt-3 grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
               <div className="md:col-span-7">
-                <label className="block text-sm">液体颜色</label>
-                <div className="mt-1 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  选择液体颜色（共 {LIQUID_DYE_COLORS.length} 种）
+                </label>
+                <div className="mt-1 grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 gap-1.5 sm:gap-2">
                   {LIQUID_DYE_COLORS.map(c => (
-                    <button key={c.name} onClick={()=>setLiquidColor(c.name)} className={`flex items-center gap-2 border rounded-lg px-2 py-2 text-xs hover:bg-gray-50 ${liquidColor===c.name? 'ring-2 ring-black/10 bg-gray-50':''}`}>
-                      <span className="w-5 h-5 rounded border" style={{background: LIQUID_SWATCH(c.name)}} />
-                      <span className="truncate">{c.name}</span>
-        </button>
+                    <button 
+                      key={c.name} 
+                      onClick={()=>setLiquidColor(c.name)} 
+                      className={`relative flex flex-col items-center gap-1 border-2 rounded-lg p-1.5 sm:p-2 transition-all duration-200 active:scale-95 ${
+                        liquidColor===c.name
+                          ? 'border-amber-500 ring-1 ring-amber-200 bg-amber-50 shadow-sm'
+                          : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
+                      }`}
+                      title={c.name}
+                    >
+                      <span 
+                        className="w-full h-8 sm:h-10 rounded border border-gray-300" 
+                        style={{background: LIQUID_SWATCH(c.name)}}
+                      />
+                      <span className="text-[9px] sm:text-[10px] font-medium text-gray-700 text-center leading-tight line-clamp-1 w-full">
+                        {c.name}
+                      </span>
+                      {liquidColor===c.name && (
+                        <div className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-amber-500 rounded-full flex items-center justify-center shadow-sm">
+                          <span className="text-white text-[8px] sm:text-[10px]">✓</span>
+                        </div>
+                      )}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -938,7 +959,7 @@ export default function CandleStudioApp() {
                 aria-label="复制配方"
               >
                 复制
-              </button>
+        </button>
             </div>
           </div>
         </div>
