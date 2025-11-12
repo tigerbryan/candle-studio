@@ -138,12 +138,14 @@ const Section = memo(({ title, children, right }: { title: string; children: Rea
     {children}
   </section>
 ));
+Section.displayName = 'Section';
 
 const VariantBadge = memo(({ v }: { v: Variant }) => (
   <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] md:text-xs ${v.best?"bg-emerald-100 text-emerald-700 border border-emerald-200":""} ${v.nr?"bg-gray-100 text-gray-500 border border-gray-200":""}`}>
     {v.best?"最佳":v.nr?"不推荐":""}
   </span>
 ));
+VariantBadge.displayName = 'VariantBadge';
 
 // ===== Component =====
 export default function CandleStudioApp() {
@@ -180,39 +182,19 @@ export default function CandleStudioApp() {
     Paraffin: "", Palm: "", "Ice Flower": "",
     Fragrance_perKg: "", DyeBlock_perBlock: "", LiquidDye_perKg: "", Wick_perUnit: "", Jar_perUnit: "",
   });
-  const setP = (k: PriceKeys, v: string) => setPrice((s) => ({ ...s, [k]: v }));
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("cs.price");
-      if (saved) setPrice(JSON.parse(saved));
-      const inv = localStorage.getItem("cs.inventory");
-      if (inv) {
-        const o = JSON.parse(inv);
-        setHas464(!!o.has464);
-        setHas454(!!o.has454);
-        setHasC3(!!o.hasC3);
-        setHasBeeswaxYellow(!!o.hasBeeswaxYellow);
-        setHasBeeswaxWhite(!!o.hasBeeswaxWhite);
-      }
-      const inputs = localStorage.getItem("cs.inputs");
-      if (inputs) {
-        const i = JSON.parse(inputs);
-        if (i.waterStr != null) setWaterStr(String(i.waterStr));
-        if (i.countStr != null) setCountStr(String(i.countStr));
-        if (i.factorStr != null) setFactorStr(String(i.factorStr));
-        if (i.flPctStr != null) setFlPctStr(String(i.flPctStr));
-      }
-    } catch {}
+  
+  // 优化：使用 useCallback 包装 setPrice 辅助函数
+  const updatePrice = useCallback((k: PriceKeys, v: string) => {
+    setPrice((prev) => ({ ...prev, [k]: v }));
   }, []);
-  useEffect(() => { try { localStorage.setItem("cs.price", JSON.stringify(price)); } catch {} }, [price]);
-  useEffect(() => { try { localStorage.setItem("cs.inventory", JSON.stringify({ has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite })); } catch {} }, [has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite]);
-  useEffect(() => { try { localStorage.setItem("cs.inputs", JSON.stringify({ waterStr, countStr, factorStr, flPctStr })); } catch {} }, [waterStr, countStr, factorStr, flPctStr]);
 
-  // ===== Load persisted state (once) =====
+  // ===== 优化：统一的持久化逻辑 =====
+  // 初始加载：只在组件挂载时执行一次
   useEffect(() => {
     const s = loadPersisted();
     if (!s) return;
+    
+    // 恢复所有状态
     if (s.tplId) setTplId(s.tplId);
     if (typeof s.variantIndex === 'number') setVariantIndex(s.variantIndex);
     if (s.waterStr) setWaterStr(s.waterStr);
@@ -232,15 +214,19 @@ export default function CandleStudioApp() {
     if (s.price) setPrice(s.price);
   }, []);
 
-  // ===== Persist on change =====
+  // 持久化：状态改变时自动保存（使用防抖优化）
   useEffect(() => {
-    persist({
-      tplId, variantIndex,
-      waterStr, countStr, factorStr, flPctStr,
-      dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor,
-      has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite,
-      price,
-    });
+    const timer = setTimeout(() => {
+      persist({
+        tplId, variantIndex,
+        waterStr, countStr, factorStr, flPctStr,
+        dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor,
+        has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite,
+        price,
+      });
+    }, 300); // 300ms 防抖，避免频繁写入
+    
+    return () => clearTimeout(timer);
   }, [tplId, variantIndex, waterStr, countStr, factorStr, flPctStr, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor, has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, price]);
 
   const mapName = useCallback((n: WaxName): PriceKeys => {
@@ -300,12 +286,13 @@ export default function CandleStudioApp() {
 
   const copy = useCallback(async () => { try { await navigator.clipboard.writeText(summary); alert("已复制批次配方到剪贴板"); } catch { alert("复制失败，请手动选择文本复制"); } }, [summary]);
 
-  // 导出数据
+  // 优化：导出数据（改进错误处理和用户反馈）
   const exportData = useCallback(() => {
     try {
       const data = {
         version: "1.0",
         exportDate: new Date().toISOString(),
+        appName: "香薰蜡烛 DIY 工作室",
         data: {
           tplId, variantIndex, waterStr, countStr, factorStr, flPctStr,
           dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor,
@@ -317,54 +304,76 @@ export default function CandleStudioApp() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `candle-studio-data-${new Date().toISOString().split('T')[0]}.json`;
+      const date = new Date().toISOString().split('T')[0];
+      a.download = `蜡烛工作室-配置备份-${date}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      alert('数据已导出！文件已下载到你的电脑。');
+      alert('✅ 数据已导出成功！\n\n文件名：蜡烛工作室-配置备份-' + date + '.json\n\n请妥善保存此文件，需要时可以导入恢复数据。');
     } catch (error) {
-      alert('导出失败，请重试');
+      console.error('导出失败:', error);
+      alert('❌ 导出失败\n\n可能原因：\n- 浏览器安全限制\n- 存储空间不足\n\n请重试或联系技术支持。');
     }
   }, [tplId, variantIndex, waterStr, countStr, factorStr, flPctStr, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor, has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, price]);
 
-  // 导入数据
+  // 优化：导入数据（改进错误处理和验证）
   const importData = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'application/json';
+    input.accept = 'application/json,.json';
     input.onchange = (e: Event) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
+      
+      // 文件大小检查
+      if (file.size > 1024 * 1024) { // 1MB
+        alert('❌ 文件过大\n\n配置文件不应超过 1MB，请检查文件是否正确。');
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
           const content = event.target?.result as string;
           const imported = JSON.parse(content);
-          if (!imported.data) throw new Error('Invalid file format');
+          
+          // 验证文件格式
+          if (!imported.data || !imported.version) {
+            throw new Error('文件格式不正确');
+          }
+          
           const d = imported.data;
+          let importedCount = 0;
+          
           // 恢复所有状态
-          if (d.tplId) setTplId(d.tplId);
-          if (typeof d.variantIndex === 'number') setVariantIndex(d.variantIndex);
-          if (d.waterStr) setWaterStr(d.waterStr);
-          if (d.countStr) setCountStr(d.countStr);
-          if (d.factorStr) setFactorStr(d.factorStr);
-          if (d.flPctStr) setFlPctStr(d.flPctStr);
-          if (d.dyeMode) setDyeMode(d.dyeMode);
-          if (d.dyeBlockColor) setDyeBlockColor(d.dyeBlockColor);
-          if (typeof d.blockShade === 'number') setBlockShade(d.blockShade);
-          if (d.liquidPreset) setLiquidPreset(d.liquidPreset);
-          if (d.liquidColor) setLiquidColor(d.liquidColor);
-          if (typeof d.has464 === 'boolean') setHas464(d.has464);
-          if (typeof d.has454 === 'boolean') setHas454(d.has454);
-          if (typeof d.hasC3 === 'boolean') setHasC3(d.hasC3);
-          if (typeof d.hasBeeswaxYellow === 'boolean') setHasBeeswaxYellow(d.hasBeeswaxYellow);
-          if (typeof d.hasBeeswaxWhite === 'boolean') setHasBeeswaxWhite(d.hasBeeswaxWhite);
-          if (d.price) setPrice(d.price);
-          alert('数据导入成功！');
+          if (d.tplId) { setTplId(d.tplId); importedCount++; }
+          if (typeof d.variantIndex === 'number') { setVariantIndex(d.variantIndex); importedCount++; }
+          if (d.waterStr) { setWaterStr(d.waterStr); importedCount++; }
+          if (d.countStr) { setCountStr(d.countStr); importedCount++; }
+          if (d.factorStr) { setFactorStr(d.factorStr); importedCount++; }
+          if (d.flPctStr) { setFlPctStr(d.flPctStr); importedCount++; }
+          if (d.dyeMode) { setDyeMode(d.dyeMode); importedCount++; }
+          if (d.dyeBlockColor) { setDyeBlockColor(d.dyeBlockColor); importedCount++; }
+          if (typeof d.blockShade === 'number') { setBlockShade(d.blockShade); importedCount++; }
+          if (d.liquidPreset) { setLiquidPreset(d.liquidPreset); importedCount++; }
+          if (d.liquidColor) { setLiquidColor(d.liquidColor); importedCount++; }
+          if (typeof d.has464 === 'boolean') { setHas464(d.has464); importedCount++; }
+          if (typeof d.has454 === 'boolean') { setHas454(d.has454); importedCount++; }
+          if (typeof d.hasC3 === 'boolean') { setHasC3(d.hasC3); importedCount++; }
+          if (typeof d.hasBeeswaxYellow === 'boolean') { setHasBeeswaxYellow(d.hasBeeswaxYellow); importedCount++; }
+          if (typeof d.hasBeeswaxWhite === 'boolean') { setHasBeeswaxWhite(d.hasBeeswaxWhite); importedCount++; }
+          if (d.price) { setPrice(d.price); importedCount++; }
+          
+          const exportDate = imported.exportDate ? new Date(imported.exportDate).toLocaleDateString('zh-CN') : '未知';
+          alert(`✅ 数据导入成功！\n\n导出时间：${exportDate}\n恢复项目：${importedCount} 项配置\n\n所有设置已恢复完成。`);
         } catch (error) {
-          alert('导入失败，请确保文件格式正确');
+          console.error('导入失败:', error);
+          alert('❌ 导入失败\n\n可能原因：\n- 文件格式不正确\n- 文件已损坏\n- 不是本应用导出的文件\n\n请确保选择正确的配置文件。');
         }
+      };
+      reader.onerror = () => {
+        alert('❌ 文件读取失败\n\n请重试或选择其他文件。');
       };
       reader.readAsText(file);
     };
@@ -375,15 +384,41 @@ export default function CandleStudioApp() {
     <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white text-gray-900 pb-24 md:pb-6">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
+      <div>
             <h1 className="text-lg md:text-2xl font-semibold">香薰蜡烛 DIY · 配方/用量/颜色/成本 工具</h1>
             <p className="text-gray-500 mt-0.5 text-xs md:text-sm">选类型 → 选配方 → 输入水重/数量/单价 → 自动出克数与成本。优先你的库存（464/454/C3/黄蜂蜡/白蜂蜡）。</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={importData} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50" title="从文件导入数据">📥 导入数据</button>
-            <button onClick={exportData} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50" title="导出数据到文件">💾 导出数据</button>
-            <button onClick={() => { if(confirm('确定要清空所有本地数据吗？')) { localStorage.removeItem(LS_KEY); window.location.reload(); } }} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50">清空记录</button>
-            <button onClick={copy} className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm bg-black text-white hover:opacity-90">复制整批配方</button>
+            <button 
+              onClick={importData} 
+              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 transition-colors" 
+              title="从文件导入数据"
+              aria-label="导入配置数据"
+            >
+              📥 导入数据
+            </button>
+            <button 
+              onClick={exportData} 
+              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 transition-colors" 
+              title="导出数据到文件"
+              aria-label="导出配置数据"
+            >
+              💾 导出数据
+            </button>
+            <button 
+              onClick={() => { if(confirm('确定要清空所有本地数据吗？此操作不可恢复！')) { localStorage.removeItem(LS_KEY); window.location.reload(); } }} 
+              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 hover:border-red-300 hover:text-red-600 transition-colors"
+              aria-label="清空所有记录"
+            >
+              清空记录
+            </button>
+            <button 
+              onClick={copy} 
+              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm bg-black text-white hover:opacity-90 transition-opacity"
+              aria-label="复制当前批次配方"
+            >
+              复制整批配方
+            </button>
           </div>
         </div>
       </header>
@@ -452,7 +487,7 @@ export default function CandleStudioApp() {
             ].map(([key,label])=> (
               <label key={key as string} className="block">
                 <span className="text-xs text-gray-600">{label as string}</span>
-                <input inputMode="decimal" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={price[key as PriceKeys] ?? ""} onChange={(e)=>setP(key as PriceKeys, normalizeDecimal(e.target.value))} />
+                <input inputMode="decimal" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={price[key as PriceKeys] ?? ""} onChange={(e)=>updatePrice(key as PriceKeys, normalizeDecimal(e.target.value))} />
               </label>
             ))}
           </div>
@@ -549,7 +584,7 @@ export default function CandleStudioApp() {
                   经验：1 块 ≈ 3 kg 蜡（中深度）。建议先做 20–50 g 小样，逐步加深；深色可能需要更大芯号。
                 </div>
               </div>
-            </div>
+      </div>
           ) : (
             <div className="mt-3 grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
               <div className="md:col-span-7">
@@ -559,7 +594,7 @@ export default function CandleStudioApp() {
                     <button key={c.name} onClick={()=>setLiquidColor(c.name)} className={`flex items-center gap-2 border rounded-lg px-2 py-2 text-xs hover:bg-gray-50 ${liquidColor===c.name? 'ring-2 ring-black/10 bg-gray-50':''}`}>
                       <span className="w-5 h-5 rounded border" style={{background: LIQUID_SWATCH(c.name)}} />
                       <span className="truncate">{c.name}</span>
-                    </button>
+        </button>
                   ))}
                 </div>
               </div>

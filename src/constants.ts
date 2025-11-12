@@ -51,9 +51,11 @@ export const LIQUID_DYE_COLORS = [
 
 export type LiquidColorName = typeof LIQUID_DYE_COLORS[number]["name"];
 
+// 优化：使用 Map 提高查找性能
+const LIQUID_COLOR_MAP = new Map(LIQUID_DYE_COLORS.map(d => [d.name, d.hex]));
+
 export const LIQUID_SWATCH = (c: LiquidColorName): string => {
-  const found = LIQUID_DYE_COLORS.find(d => d.name === c);
-  return found ? found.hex : "#ccc";
+  return LIQUID_COLOR_MAP.get(c) || "#ccc";
 };
 
 // ===== 蜡材信息 =====
