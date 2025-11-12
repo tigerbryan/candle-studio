@@ -67,45 +67,44 @@ export const LIQUID_PRESETS = [
 
 export type LiquidPresetId = typeof LIQUID_PRESETS[number]["id"];
 
-// ===== 液体染料颜色（基于 Amazon 产品）=====
+// ===== 液体染料颜色（32 Colors Candle Dye）=====
 export const LIQUID_DYE_COLORS = [
-  // Red / Pink 系列
+  // Row 1
+  { name: "Fluorescent Orange", hex: "#FF6600" },
+  { name: "Fluorescent Rose Red", hex: "#FF1493" },
+  { name: "Fluorescent Purple", hex: "#BF00FF" },
+  { name: "Fluorescent Blue", hex: "#00BFFF" },
+  { name: "Amber Yellow", hex: "#FFBF00" },
+  { name: "Matcha Green", hex: "#9ACD32" },
+  { name: "Dark Red", hex: "#8B0000" },
   { name: "Red", hex: "#DC143C" },
+  // Row 2
+  { name: "Macaroon Yellow", hex: "#FFE5B4" },
+  { name: "Apple Green", hex: "#7CFC00" },
   { name: "Pink", hex: "#FFB6C1" },
-  { name: "Rose", hex: "#FF69B4" },
-  { name: "Burgundy", hex: "#800020" },
-  { name: "Maroon", hex: "#800000" },
-  { name: "Magenta", hex: "#C71585" },
-  // Blue / Purple 系列
-  { name: "Blue", hex: "#4169E1" },
-  { name: "Navy", hex: "#000080" },
-  { name: "Sky Blue", hex: "#87CEEB" },
-  { name: "Teal", hex: "#008080" },
-  { name: "Turquoise", hex: "#40E0D0" },
-  { name: "Cyan", hex: "#00CED1" },
-  { name: "Purple", hex: "#8B008B" },
-  { name: "Lavender", hex: "#E6E6FA" },
-  { name: "Violet", hex: "#8A2BE2" },
-  // Green 系列
-  { name: "Green", hex: "#228B22" },
-  { name: "Lime", hex: "#32CD32" },
-  { name: "Forest Green", hex: "#228B22" },
-  { name: "Mint", hex: "#98FB98" },
-  { name: "Olive", hex: "#808000" },
-  // Yellow / Orange 系列
-  { name: "Yellow", hex: "#FFD700" },
+  { name: "Garnet", hex: "#800020" },
   { name: "Orange", hex: "#FF8C00" },
-  { name: "Gold", hex: "#FFD700" },
-  { name: "Amber", hex: "#FFBF00" },
-  { name: "Peach", hex: "#FFE5B4" },
-  // Brown / Neutral 系列
+  { name: "Yellow", hex: "#FFD700" },
+  { name: "Ultramarine", hex: "#4169E1" },
+  { name: "Blue", hex: "#1E90FF" },
+  // Row 3
+  { name: "Grass Green", hex: "#228B22" },
+  { name: "Teal", hex: "#008080" },
+  { name: "Violet", hex: "#8A2BE2" },
+  { name: "Cerulean Blue", hex: "#00CED1" },
+  { name: "Olive Green", hex: "#808000" },
+  { name: "Carmine", hex: "#DC143C" },
+  { name: "Indigo", hex: "#4B0082" },
   { name: "Brown", hex: "#8B4513" },
-  { name: "Tan", hex: "#D2B48C" },
-  { name: "Beige", hex: "#F5F5DC" },
-  // Black / White / Gray 系列
-  { name: "Black", hex: "#1a1a1a" },
-  { name: "White", hex: "#F5F5F5" },
-  { name: "Gray", hex: "#808080" },
+  // Row 4
+  { name: "Dark Gray", hex: "#2F4F4F" },
+  { name: "Hot Coral", hex: "#FF7F50" },
+  { name: "Fluorescent Peach", hex: "#FFCC99" },
+  { name: "Fluorescent Pink", hex: "#FF69B4" },
+  { name: "Plum", hex: "#8B008B" },
+  { name: "Forest Green", hex: "#228B22" },
+  { name: "Grayish Purple", hex: "#9370DB" },
+  { name: "Wild Rose", hex: "#FF69B4" },
 ] as const;
 
 export type LiquidColorName = typeof LIQUID_DYE_COLORS[number]["name"];
