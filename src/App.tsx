@@ -129,6 +129,35 @@ function computeWaxFromWater({ waterGrams, count, factor = 1.15 }: { waterGrams:
 function calcLiquidDye(netWax: number, pct: number) { return Math.max(0, +(netWax * (pct / 100)).toFixed(3)); }
 function calcBlockCount(netWax: number, shadeMul = 1) { const blocks = (netWax / 3000) * shadeMul; return Math.max(0, +blocks.toFixed(2)); }
 
+// 颜色混合工具函数
+function mixColors(color1: string, color2: string, ratio: number) {
+  const hex1 = color1.replace('#', '');
+  const hex2 = color2.replace('#', '');
+  const r1 = parseInt(hex1.substr(0, 2), 16);
+  const g1 = parseInt(hex1.substr(2, 2), 16);
+  const b1 = parseInt(hex1.substr(4, 2), 16);
+  const r2 = parseInt(hex2.substr(0, 2), 16);
+  const g2 = parseInt(hex2.substr(2, 2), 16);
+  const b2 = parseInt(hex2.substr(4, 2), 16);
+  const r = Math.round(r1 * (1 - ratio) + r2 * ratio);
+  const g = Math.round(g1 * (1 - ratio) + g2 * ratio);
+  const b = Math.round(b1 * (1 - ratio) + b2 * ratio);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+// 根据浓度计算颜色深浅
+function getShadeColor(baseColor: string, shade: number) {
+  if (shade <= 1) {
+    // 浅色：混合白色
+    const mix = 1 - shade;
+    return mixColors(baseColor, "#FFFFFF", mix);
+  } else {
+    // 深色：混合黑色
+    const mix = (shade - 1) / 1;
+    return mixColors(baseColor, "#000000", mix);
+  }
+}
+
 // ===== UI bits (hoisted & memoized) =====
 const Section = memo(({ title, children, right }: { title: string; children: React.ReactNode; right?: React.ReactNode }) => (
   <section className="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow duration-200 p-5 md:p-6">
@@ -666,34 +695,112 @@ export default function CandleStudioApp() {
           </div>
 
           {dyeMode==='block' ? (
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
-              <div className="md:col-span-6">
-                <label className="block text-sm">色块颜色</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-lg border" style={{ background: SWATCH(dyeBlockColor) }} />
-                  <select className="flex-1 border rounded-xl px-3 py-2 h-11" value={dyeBlockColor} onChange={(e)=>setDyeBlockColor(e.target.value as DyeBlockColor)}>
-                    {DYE_BLOCK_COLORS.map((c)=> (<option key={c} value={c}>{c}</option>))}
-                  </select>
+            <div className="mt-4 space-y-4">
+              {/* 色块颜色选择 - 直接展示 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">选择色块颜色</label>
+                <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-3">
+                  {DYE_BLOCK_COLORS.map((color) => {
+                    const isSelected = dyeBlockColor === color;
+                    const displayColor = getShadeColor(SWATCH(color), blockShade);
+                    
+                    return (
+                      <button
+                        key={color}
+                        onClick={() => setDyeBlockColor(color)}
+                        className={`relative rounded-xl border-2 p-3 transition-all duration-200 active:scale-95 ${
+                          isSelected
+                            ? 'border-amber-500 ring-2 ring-amber-200 shadow-md scale-105'
+                            : 'border-gray-200 hover:border-amber-300 hover:shadow-sm'
+                        }`}
+                        title={color}
+                      >
+                        <div 
+                          className="w-full h-16 rounded-lg mb-2 border border-gray-300"
+                          style={{ background: displayColor }}
+                        />
+                        <div className="text-xs font-medium text-gray-700 text-center">
+                          {color}
+                        </div>
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-[10px]">✓</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="md:col-span-6">
-                <label className="block text-sm">深浅强度（0.5–2.0）</label>
-                <div className="mt-1 rounded-xl border p-3 bg-gray-50">
-                  <input type="range" min={0.5} max={2} step={0.25} value={blockShade} onChange={(e)=>setBlockShade(parseFloat(e.target.value))} className="w-full" />
-                  <div className="mt-1 flex justify-between text-[10px] text-gray-500">
-                    <span>Pastel ×0.5</span><span>Medium ×1</span><span>Dark ×1.5</span><span>Very Dark ×2</span>
+              {/* 浓度调节 */}
+      <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  深浅强度：<span className="text-amber-600 font-semibold">×{blockShade}</span>
+                </label>
+                <div className="rounded-xl border-2 border-gray-200 bg-white p-4">
+                  <input 
+                    type="range" 
+                    min={0.5} 
+                    max={2} 
+                    step={0.25} 
+                    value={blockShade} 
+                    onChange={(e)=>setBlockShade(parseFloat(e.target.value))} 
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  />
+                  <div className="mt-3 flex justify-between text-xs text-gray-600">
+                    <div className="text-center">
+                      <div className="font-medium">Pastel</div>
+                      <div className="text-gray-400">×0.5</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-medium">Medium</div>
+                      <div className="text-gray-400">×1.0</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-medium">Dark</div>
+                      <div className="text-gray-400">×1.5</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-medium">Very Dark</div>
+                      <div className="text-gray-400">×2.0</div>
+                    </div>
+                  </div>
+                  
+                  {/* 当前选中颜色的浓度预览 */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-xs text-gray-600 mb-2">当前颜色浓度预览：</div>
+                    <div className="flex gap-2">
+                      {[0.5, 1.0, 1.5, 2.0].map((shade) => {
+                        const previewColor = getShadeColor(SWATCH(dyeBlockColor), shade);
+                        const isCurrent = Math.abs(blockShade - shade) < 0.1;
+                        return (
+                          <div key={shade} className="flex-1 text-center">
+                            <div 
+                              className={`w-full h-12 rounded-lg mb-1 border-2 ${
+                                isCurrent ? 'border-amber-500 ring-2 ring-amber-200' : 'border-gray-300'
+                              }`}
+                              style={{ background: previewColor }}
+                            />
+                            <div className={`text-[10px] ${isCurrent ? 'font-semibold text-amber-600' : 'text-gray-500'}`}>
+                              ×{shade}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="md:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="rounded-xl bg-white border p-3 flex items-center justify-between">
-                  <div className="text-sm text-gray-600">预计需要色块</div>
-                  <div className="text-2xl font-semibold tabular-nums">{blockCount}</div>
+              {/* 预计用量 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 p-4 flex items-center justify-between shadow-sm">
+                  <div className="text-sm font-medium text-gray-700">预计需要色块</div>
+                  <div className="text-3xl font-bold tabular-nums text-amber-700">{blockCount}</div>
                 </div>
-                <div className="rounded-xl bg-white border p-3 text-xs text-gray-600 md:col-span-2">
-                  <strong>专业建议：</strong>1 块 ≈ 3 kg 蜡（中深度）。建议先做 20–50 g 小样测试，逐步加深至目标色。深色可能需要更大芯号，避免隧道燃烧。色块需刨片后加入，充分搅拌确保均匀。
+                <div className="rounded-xl bg-white border-2 border-gray-200 p-4 text-xs text-gray-600 md:col-span-2">
+                  <strong className="text-gray-800">💡 专业建议：</strong>1 块 ≈ 3 kg 蜡（中深度）。建议先做 20–50 g 小样测试，逐步加深至目标色。深色可能需要更大芯号，避免隧道燃烧。色块需刨片后加入，充分搅拌确保均匀。
                 </div>
               </div>
       </div>
