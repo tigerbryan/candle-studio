@@ -698,8 +698,10 @@ export default function CandleStudioApp() {
             <div className="mt-4 space-y-4">
               {/* 色块颜色选择 - 直接展示 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">选择色块颜色</label>
-                <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  选择色块颜色（共 {DYE_BLOCK_COLORS.length} 种）
+                </label>
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-9 gap-3">
                   {DYE_BLOCK_COLORS.map((color) => {
                     const isSelected = dyeBlockColor === color;
                     const displayColor = getShadeColor(SWATCH(color), blockShade);

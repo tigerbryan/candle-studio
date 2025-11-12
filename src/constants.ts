@@ -1,22 +1,58 @@
-// ===== 色块染料颜色 =====
+// ===== 色块染料颜色（基于 Aussie Candle Supplies 的 28 种色块）=====
 export const DYE_BLOCK_COLORS = [
-  "Pink", "Red", "Orange", "Yellow", "Green", "Blue", "Purple", "Brown", "Black", "White"
+  // Red / Pink 系列
+  "Red", "Pink", "Rose", "Burgundy", "Maroon",
+  // Blue / Purple 系列
+  "Blue", "Navy", "Sky Blue", "Teal", "Turquoise", "Purple", "Lavender", "Violet",
+  // Green 系列
+  "Green", "Lime", "Forest Green", "Mint", "Olive",
+  // Yellow / Orange 系列
+  "Yellow", "Orange", "Gold", "Amber", "Peach",
+  // Brown / Neutral 系列
+  "Brown", "Tan", "Beige",
+  // Black / White / Gray 系列
+  "Black", "White", "Gray"
 ] as const;
 
 export type DyeBlockColor = typeof DYE_BLOCK_COLORS[number];
 
 export const SWATCH = (c: DyeBlockColor): string => {
   const map: Record<DyeBlockColor, string> = {
-    Pink: "#FFB6C1",
+    // Red / Pink
     Red: "#DC143C",
-    Orange: "#FF8C00",
-    Yellow: "#FFD700",
-    Green: "#228B22",
+    Pink: "#FFB6C1",
+    Rose: "#FF69B4",
+    Burgundy: "#800020",
+    Maroon: "#800000",
+    // Blue / Purple
     Blue: "#4169E1",
+    Navy: "#000080",
+    "Sky Blue": "#87CEEB",
+    Teal: "#008080",
+    Turquoise: "#40E0D0",
     Purple: "#8B008B",
+    Lavender: "#E6E6FA",
+    Violet: "#8A2BE2",
+    // Green
+    Green: "#228B22",
+    Lime: "#32CD32",
+    "Forest Green": "#228B22",
+    Mint: "#98FB98",
+    Olive: "#808000",
+    // Yellow / Orange
+    Yellow: "#FFD700",
+    Orange: "#FF8C00",
+    Gold: "#FFD700",
+    Amber: "#FFBF00",
+    Peach: "#FFE5B4",
+    // Brown / Neutral
     Brown: "#8B4513",
+    Tan: "#D2B48C",
+    Beige: "#F5F5DC",
+    // Black / White / Gray
     Black: "#1a1a1a",
     White: "#F5F5F5",
+    Gray: "#808080",
   };
   return map[c] || "#ccc";
 };
