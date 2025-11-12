@@ -131,10 +131,10 @@ function calcBlockCount(netWax: number, shadeMul = 1) { const blocks = (netWax /
 
 // ===== UI bits (hoisted & memoized) =====
 const Section = memo(({ title, children, right }: { title: string; children: React.ReactNode; right?: React.ReactNode }) => (
-  <section className="rounded-2xl border p-4 bg-white/80 backdrop-blur">
-    <div className="flex items-center justify-between gap-3 mb-3">
-      <h2 className="font-medium text-base md:text-lg">{title}</h2>
-      {right}
+  <section className="rounded-2xl border border-gray-200 bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow duration-200 p-5 md:p-6">
+    <div className="flex items-center justify-between gap-3 mb-4">
+      <h2 className="font-semibold text-base md:text-lg text-gray-800">{title}</h2>
+      {right && <div className="flex-shrink-0">{right}</div>}
     </div>
     {children}
   </section>
@@ -382,57 +382,81 @@ export default function CandleStudioApp() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white text-gray-900 pb-24 md:pb-6">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div>
-            <h1 className="text-lg md:text-2xl font-semibold">香薰蜡烛 DIY · 配方/用量/颜色/成本 工具</h1>
-            <p className="text-gray-500 mt-0.5 text-xs md:text-sm">选类型 → 选配方 → 输入水重/数量/单价 → 自动出克数与成本。优先你的库存（464/454/C3/黄蜂蜡/白蜂蜡）。</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={importData} 
-              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 transition-colors" 
-              title="从文件导入数据"
-              aria-label="导入配置数据"
-            >
-              📥 导入数据
-            </button>
-            <button 
-              onClick={exportData} 
-              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 transition-colors" 
-              title="导出数据到文件"
-              aria-label="导出配置数据"
-            >
-              💾 导出数据
-            </button>
-            <button 
-              onClick={() => { if(confirm('确定要清空所有本地数据吗？此操作不可恢复！')) { localStorage.removeItem(LS_KEY); window.location.reload(); } }} 
-              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 hover:border-red-300 hover:text-red-600 transition-colors"
-              aria-label="清空所有记录"
-            >
-              清空记录
-            </button>
-            <button 
-              onClick={copy} 
-              className="hidden md:inline-flex rounded-xl border px-3 py-2 text-sm bg-black text-white hover:opacity-90 transition-opacity"
-              aria-label="复制当前批次配方"
-            >
-              复制整批配方
-            </button>
+    <div className="min-h-screen w-full bg-gradient-to-br from-amber-50 via-white to-orange-50 text-gray-900 pb-24 md:pb-6">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-2xl md:text-3xl">🕯️</span>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                  香薰蜡烛 DIY 工作室
+                </h1>
+              </div>
+              <p className="text-gray-600 mt-1 text-xs md:text-sm leading-relaxed">
+                专业配方计算器 · 选类型 → 选配方 → 输入参数 → 自动计算用量与成本
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button 
+                onClick={importData} 
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs md:text-sm hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm transition-all active:scale-95" 
+                title="从文件导入数据"
+                aria-label="导入配置数据"
+              >
+                <span>📥</span>
+                <span className="hidden sm:inline">导入</span>
+              </button>
+              <button 
+                onClick={exportData} 
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs md:text-sm hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm transition-all active:scale-95" 
+                title="导出数据到文件"
+                aria-label="导出配置数据"
+              >
+                <span>💾</span>
+                <span className="hidden sm:inline">导出</span>
+              </button>
+              <button 
+                onClick={() => { if(confirm('确定要清空所有本地数据吗？此操作不可恢复！')) { localStorage.removeItem(LS_KEY); window.location.reload(); } }} 
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs md:text-sm hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all active:scale-95"
+                aria-label="清空所有记录"
+              >
+                <span>🗑️</span>
+                <span className="hidden sm:inline">清空</span>
+              </button>
+              <button 
+                onClick={copy} 
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 text-xs md:text-sm font-medium hover:from-amber-600 hover:to-orange-600 hover:shadow-md transition-all active:scale-95 shadow-sm"
+                aria-label="复制当前批次配方"
+              >
+                <span>📋</span>
+                <span className="hidden sm:inline">复制配方</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-4 space-y-4 md:space-y-6">
         <Section title="① 选择制作类型" right={<div className="text-xs text-gray-400">加香 {tpl.temp.addFO}°C · 浇注 {tpl.temp.pour}°C</div>}>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {TEMPLATE_LIBRARY.map((t) => (
-              <button key={t.id} onClick={() => onSelectTpl(t.id)} className={`rounded-xl border p-3 text-left hover:bg-gray-50 active:scale-[0.99] transition ${tplId===t.id?"ring-2 ring-black/10 bg-gray-50":""}`}>
-                <div className="font-medium text-sm md:text-base flex items-center gap-2">
+              <button 
+                key={t.id} 
+                onClick={() => onSelectTpl(t.id)} 
+                className={`rounded-xl border-2 p-4 text-left transition-all duration-200 active:scale-[0.98] ${
+                  tplId===t.id
+                    ? "border-amber-500 bg-gradient-to-br from-amber-50 to-orange-50 shadow-md ring-2 ring-amber-200"
+                    : "border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 hover:shadow-sm"
+                }`}
+              >
+                <div className="font-semibold text-sm md:text-base text-gray-800 flex items-center gap-2 mb-1">
                   <span>{t.title}</span>
+                  {tplId===t.id && <span className="text-amber-600">✓</span>}
                 </div>
-                <div className="text-[10px] md:text-xs text-gray-400 mt-1">最佳：{t.variants.find(v=>v.best)?.name.replace(/（最佳）/g,"")}</div>
+                <div className="text-[10px] md:text-xs text-gray-500 mt-1.5">
+                  ⭐ {t.variants.find(v=>v.best)?.name.replace(/（最佳）/g,"") || "推荐配方"}
+                </div>
               </button>
             ))}
           </div>
@@ -440,8 +464,13 @@ export default function CandleStudioApp() {
 
         <Section title="② 配方方案（高亮【最佳】在最前）">
           <div className="grid md:grid-cols-3 gap-3 items-end">
-            <label className="block text-sm">方案
-              <select className="mt-1 w-full border rounded-xl px-3 py-2 h-10 md:h-11" value={variantIndex} onChange={(e)=>onSelectVariant(Number(e.target.value))}>
+            <label className="block text-sm font-medium text-gray-700">
+              配方方案
+              <select 
+                className="mt-1.5 w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 h-11 md:h-12 bg-white hover:border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors cursor-pointer" 
+                value={variantIndex} 
+                onChange={(e)=>onSelectVariant(Number(e.target.value))}
+              >
                 {tpl.variants.map((v, i) => (
                   <option key={v.name} value={i}>
                     {v.name} · 香精 {v.fl.rec}%（{v.fl.range}）
@@ -452,11 +481,23 @@ export default function CandleStudioApp() {
             <div className="text-xs text-gray-500">推荐：{variant.fl.rec}%（{variant.fl.range}）</div>
             <div className="text-xs text-gray-500 truncate">提示：{tpl.tip}</div>
           </div>
-          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
             {tpl.variants.map((v,i)=> (
-              <div key={v.name} className={`rounded-xl border p-3 text-sm ${i===variantIndex?"border-black/20 bg-gray-50":""}`}>
-                <div className="font-medium flex items-center">{v.name}<VariantBadge v={v} /></div>
-                <div className="text-xs text-gray-500 mt-1">香精：{v.fl.rec}%（{v.fl.range}）</div>
+              <div 
+                key={v.name} 
+                className={`rounded-xl border-2 p-4 text-sm transition-all cursor-pointer ${
+                  i===variantIndex
+                    ? "border-amber-500 bg-gradient-to-br from-amber-50 to-orange-50 shadow-md ring-2 ring-amber-200"
+                    : "border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/30 hover:shadow-sm"
+                }`}
+                onClick={() => onSelectVariant(i)}
+              >
+                <div className="font-semibold flex items-center text-gray-800">
+                  {v.name}
+                  {i===variantIndex && <span className="ml-2 text-amber-600">✓</span>}
+                  <VariantBadge v={v} />
+                </div>
+                <div className="text-xs text-gray-600 mt-2">香精：{v.fl.rec}%（{v.fl.range}）</div>
               </div>
             ))}
           </div>
@@ -464,11 +505,26 @@ export default function CandleStudioApp() {
 
         <Section title="③ 我的库存优先级 & 单价（AUD）">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3 text-sm">
-            <label className="flex items-center gap-2 p-2 rounded-lg border"><input type="checkbox" checked={has464} onChange={(e)=>setHas464(e.target.checked)} />GW464</label>
-            <label className="flex items-center gap-2 p-2 rounded-lg border"><input type="checkbox" checked={has454} onChange={(e)=>setHas454(e.target.checked)} />GW454</label>
-            <label className="flex items-center gap-2 p-2 rounded-lg border"><input type="checkbox" checked={hasC3} onChange={(e)=>setHasC3(e.target.checked)} />C3</label>
-            <label className="flex items-center gap-2 p-2 rounded-lg border"><input type="checkbox" checked={hasBeeswaxYellow} onChange={(e)=>setHasBeeswaxYellow(e.target.checked)} />Beeswax Yellow</label>
-            <label className="flex items-center gap-2 p-2 rounded-lg border"><input type="checkbox" checked={hasBeeswaxWhite} onChange={(e)=>setHasBeeswaxWhite(e.target.checked)} />Beeswax White</label>
+            <label className="flex items-center gap-2.5 p-3 rounded-xl border-2 border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 cursor-pointer transition-all">
+              <input type="checkbox" checked={has464} onChange={(e)=>setHas464(e.target.checked)} className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer" />
+              <span className="text-sm font-medium text-gray-700">GW464</span>
+            </label>
+            <label className="flex items-center gap-2.5 p-3 rounded-xl border-2 border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 cursor-pointer transition-all">
+              <input type="checkbox" checked={has454} onChange={(e)=>setHas454(e.target.checked)} className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer" />
+              <span className="text-sm font-medium text-gray-700">GW454</span>
+            </label>
+            <label className="flex items-center gap-2.5 p-3 rounded-xl border-2 border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 cursor-pointer transition-all">
+              <input type="checkbox" checked={hasC3} onChange={(e)=>setHasC3(e.target.checked)} className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer" />
+              <span className="text-sm font-medium text-gray-700">C3</span>
+            </label>
+            <label className="flex items-center gap-2.5 p-3 rounded-xl border-2 border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 cursor-pointer transition-all">
+              <input type="checkbox" checked={hasBeeswaxYellow} onChange={(e)=>setHasBeeswaxYellow(e.target.checked)} className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer" />
+              <span className="text-sm font-medium text-gray-700">Beeswax Yellow</span>
+            </label>
+            <label className="flex items-center gap-2.5 p-3 rounded-xl border-2 border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 cursor-pointer transition-all">
+              <input type="checkbox" checked={hasBeeswaxWhite} onChange={(e)=>setHasBeeswaxWhite(e.target.checked)} className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer" />
+              <span className="text-sm font-medium text-gray-700">Beeswax White</span>
+            </label>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 mt-3 text-sm">
             {[
@@ -488,7 +544,13 @@ export default function CandleStudioApp() {
             ].map(([key,label])=> (
               <label key={key as string} className="block">
                 <span className="text-xs text-gray-600">{label as string}</span>
-                <input inputMode="decimal" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={price[key as PriceKeys] ?? ""} onChange={(e)=>updatePrice(key as PriceKeys, normalizeDecimal(e.target.value))} />
+                <input 
+                  inputMode="decimal" 
+                  type="text" 
+                  className="mt-1.5 w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 h-11 bg-white hover:border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors" 
+                  value={price[key as PriceKeys] ?? ""} 
+                  onChange={(e)=>updatePrice(key as PriceKeys, normalizeDecimal(e.target.value))} 
+                />
               </label>
             ))}
           </div>
@@ -527,31 +589,80 @@ export default function CandleStudioApp() {
 
         <Section title="⑤ 用量参数（【装水称重】法）">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3">
-            <label className="block text-sm">单个模具水重(g)
-              <input inputMode="numeric" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={waterStr} onChange={(e)=>setWaterStr(normalizeDecimal(e.target.value))} />
+            <label className="block text-sm font-medium text-gray-700">
+              单个模具水重 (g)
+              <input 
+                inputMode="numeric" 
+                type="text" 
+                className="mt-1.5 w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 h-11 bg-white hover:border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors" 
+                value={waterStr} 
+                onChange={(e)=>setWaterStr(normalizeDecimal(e.target.value))} 
+              />
             </label>
-            <label className="block text-sm">数量(个)
-              <input inputMode="numeric" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={countStr} onChange={(e)=>setCountStr(normalizeDecimal(e.target.value))} />
+            <label className="block text-sm font-medium text-gray-700">
+              数量 (个)
+              <input 
+                inputMode="numeric" 
+                type="text" 
+                className="mt-1.5 w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 h-11 bg-white hover:border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors" 
+                value={countStr} 
+                onChange={(e)=>setCountStr(normalizeDecimal(e.target.value))} 
+              />
             </label>
-            <label className="block text-sm">水→蜡换算因子
-              <input inputMode="decimal" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={factorStr} onChange={(e)=>setFactorStr(normalizeDecimal(e.target.value))} />
-              <div className="text-xs text-gray-400 mt-1">常用 1.15（大豆/椰子系经验）。提示：精确测量模具水重可提高计算准确性。</div>
+            <label className="block text-sm font-medium text-gray-700">
+              水→蜡换算因子
+              <input 
+                inputMode="decimal" 
+                type="text" 
+                className="mt-1.5 w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 h-11 bg-white hover:border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors" 
+                value={factorStr} 
+                onChange={(e)=>setFactorStr(normalizeDecimal(e.target.value))} 
+              />
+              <div className="text-xs text-gray-500 mt-1.5">常用 1.15（大豆/椰子系经验）</div>
             </label>
-            <label className="block text-sm">香精负载(%)
-              <input inputMode="decimal" type="text" className="mt-1 w-full border rounded-xl px-3 py-2 h-10" value={flPctStr} onChange={(e)=>setFlPctStr(normalizeDecimal(e.target.value))} />
-              <div className="text-xs text-gray-400 mt-1">{variant.fl.range}（默认 {variant.fl.rec}%）</div>
+            <label className="block text-sm font-medium text-gray-700">
+              香精负载 (%)
+              <input 
+                inputMode="decimal" 
+                type="text" 
+                className="mt-1.5 w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 h-11 bg-white hover:border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors" 
+                value={flPctStr} 
+                onChange={(e)=>setFlPctStr(normalizeDecimal(e.target.value))} 
+              />
+              <div className="text-xs text-gray-500 mt-1.5">{variant.fl.range}（默认 {variant.fl.rec}%）</div>
             </label>
-            <div className="text-sm bg-gray-50 rounded-xl p-3 flex flex-col justify-center">
-              <div>总水重：<span className="font-mono">{base.totalWater} g</span></div>
-              <div>总倒料（含香精）：<span className="font-mono">{base.totalWax} g</span></div>
+            <div className="text-sm bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200 flex flex-col justify-center shadow-sm">
+              <div className="font-semibold text-gray-800 mb-1">计算结果</div>
+              <div className="text-gray-700">总水重：<span className="font-mono font-semibold text-amber-700">{base.totalWater} g</span></div>
+              <div className="text-gray-700 mt-1">总倒料（含香精）：<span className="font-mono font-semibold text-amber-700">{base.totalWax} g</span></div>
             </div>
           </div>
         </Section>
 
         <Section title="⑥ 上色方式与用量">
-          <div className="inline-flex rounded-xl border p-0.5 bg-white">
-            <button aria-pressed={dyeMode==='block'} onClick={()=>setDyeMode('block')} className={`px-3 py-2 rounded-lg text-sm transition ${dyeMode==='block'?'bg-black text-white':'text-gray-700'}`}>色块（Dye Block）</button>
-            <button aria-pressed={dyeMode==='liquid'} onClick={()=>setDyeMode('liquid')} className={`px-3 py-2 rounded-lg text-sm transition ${dyeMode==='liquid'?'bg-black text-white':'text-gray-700'}`}>液体染料</button>
+          <div className="inline-flex rounded-xl border-2 border-gray-200 p-1 bg-gray-50">
+            <button 
+              aria-pressed={dyeMode==='block'} 
+              onClick={()=>setDyeMode('block')} 
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                dyeMode==='block'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                  : 'text-gray-700 hover:bg-white'
+              }`}
+            >
+              色块（Dye Block）
+            </button>
+            <button 
+              aria-pressed={dyeMode==='liquid'} 
+              onClick={()=>setDyeMode('liquid')} 
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                dyeMode==='liquid'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                  : 'text-gray-700 hover:bg-white'
+              }`}
+            >
+              液体染料
+            </button>
           </div>
 
           {dyeMode==='block' ? (
@@ -632,40 +743,93 @@ export default function CandleStudioApp() {
             </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="rounded-xl bg-white p-3 border">
-              <div className="font-medium mb-2">成本汇总（批）</div>
-              <div>蜡材：<span className="font-mono">{waxCost.toFixed(2)}</span> AUD</div>
-              <div>香精：<span className="font-mono">{fragranceCost.toFixed(2)}</span> AUD</div>
-              <div>染料：<span className="font-mono">{dyeCost.toFixed(2)}</span> AUD</div>
-              <div>辅料(瓶/芯)：<span className="font-mono">{accessoriesCostBatch.toFixed(2)}</span> AUD</div>
-              <div className="font-semibold mt-1">合计（批）：<span className="font-mono">{totalCostBatch.toFixed(2)}</span> AUD</div>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-5 border-2 border-gray-200 shadow-sm">
+              <div className="font-semibold text-gray-800 mb-3 text-base">成本汇总（批）</div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-200">
+                  <span className="text-gray-600">蜡材</span>
+                  <span className="font-mono font-semibold text-gray-800">{waxCost.toFixed(2)} AUD</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-200">
+                  <span className="text-gray-600">香精</span>
+                  <span className="font-mono font-semibold text-gray-800">{fragranceCost.toFixed(2)} AUD</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-200">
+                  <span className="text-gray-600">染料</span>
+                  <span className="font-mono font-semibold text-gray-800">{dyeCost.toFixed(2)} AUD</span>
+                </div>
+                <div className="flex justify-between items-center py-1.5 border-b border-gray-200">
+                  <span className="text-gray-600">辅料(瓶/芯)</span>
+                  <span className="font-mono font-semibold text-gray-800">{accessoriesCostBatch.toFixed(2)} AUD</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 mt-2 border-t-2 border-gray-300">
+                  <span className="font-semibold text-gray-800">合计（批）</span>
+                  <span className="font-mono font-bold text-lg text-amber-700">{totalCostBatch.toFixed(2)} AUD</span>
+                </div>
+              </div>
             </div>
-            <div className="rounded-xl bg-white p-3 border">
-              <div className="font-medium mb-2">成本（单只）</div>
-              <div className="text-2xl font-semibold"><span className="font-mono">{costPerCandle.toFixed(2)}</span> AUD</div>
+            <div className="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 border-2 border-amber-200 shadow-md">
+              <div className="font-semibold text-gray-800 mb-3 text-base">成本（单只）</div>
+              <div className="flex items-baseline gap-2 pt-2">
+                <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                  {costPerCandle.toFixed(2)}
+                </span>
+                <span className="text-xl font-semibold text-gray-700">AUD</span>
+              </div>
+              <div className="mt-3 text-xs text-gray-600">
+                批量制作可降低单只成本
+              </div>
             </div>
           </div>
 
-          <div className="hidden md:flex justify-end mt-3">
-            <button onClick={copy} className="rounded-xl border px-3 py-2 text-sm bg-black text-white hover:opacity-90">复制整批配方</button>
+          <div className="hidden md:flex justify-end mt-4">
+            <button 
+              onClick={copy} 
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-3 text-sm font-medium hover:from-amber-600 hover:to-orange-600 hover:shadow-lg transition-all active:scale-95 shadow-md"
+            >
+              <span>📋</span>
+              <span>复制整批配方</span>
+            </button>
           </div>
         </Section>
 
         <TipsSection />
       </main>
 
-      <div className="fixed md:hidden left-0 right-0 bottom-0 z-20 border-t bg-white/95 backdrop-blur px-4 py-2">
+      <div className="fixed md:hidden left-0 right-0 bottom-0 z-20 border-t-2 border-gray-200 bg-white/98 backdrop-blur-md shadow-lg px-4 py-3">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <div>
-              <div className="text-[10px] text-gray-500">单只成本</div>
-              <div className="text-lg font-semibold">{costPerCandle.toFixed(2)} AUD</div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <div className="text-[10px] text-gray-500 mb-0.5">单只成本</div>
+              <div className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                {costPerCandle.toFixed(2)} AUD
+              </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={importData} className="rounded-lg border px-2 py-1 text-xs hover:bg-gray-50" title="导入数据">📥</button>
-              <button onClick={exportData} className="rounded-lg border px-2 py-1 text-xs hover:bg-gray-50" title="导出数据">💾</button>
-              <button onClick={copy} className="rounded-xl border px-3 py-2 text-sm bg-black text-white">复制配方</button>
+              <button 
+                onClick={importData} 
+                className="rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-xs hover:bg-gray-50 hover:border-amber-300 transition-all active:scale-95" 
+                title="导入数据"
+                aria-label="导入"
+              >
+                📥
+              </button>
+              <button 
+                onClick={exportData} 
+                className="rounded-lg border-2 border-gray-200 bg-white px-3 py-2 text-xs hover:bg-gray-50 hover:border-amber-300 transition-all active:scale-95" 
+                title="导出数据"
+                aria-label="导出"
+              >
+                💾
+              </button>
+              <button 
+                onClick={copy} 
+                className="rounded-xl border-2 border-amber-500 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 text-sm font-medium shadow-md hover:shadow-lg transition-all active:scale-95"
+                aria-label="复制配方"
+              >
+                复制
+              </button>
             </div>
           </div>
         </div>
