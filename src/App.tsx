@@ -20,9 +20,9 @@ import {
 import TipsSection from "./TipsSection";
 
 // ===== Types kept locally that refer to constants' types =====
-export type WaxName = "Soy" | "Coconut" | "Beeswax" | "Palm" | "Paraffin" | "Ice Flower";
+export type WaxName = "Soy" | "Coconut" | "Beeswax" | "Palm" | "Paraffin" | "Ice Flower" | "PillarSoy";
 export type PriceKeys =
-  | "GW464" | "GW454" | "C3" | "BeeswaxYellow" | "BeeswaxWhite" | "Paraffin" | "Palm" | "Ice Flower"
+  | "GW464" | "GW454" | "C3" | "BeeswaxYellow" | "BeeswaxWhite" | "Paraffin" | "Palm" | "Ice Flower" | "PillarSoy"
   | "Fragrance_perKg" | "DyeBlock_perBlock" | "LiquidDye_perKg" | "Wick_perUnit" | "Jar_perUnit";
 export type Part = { name: PriceKeys; pct: number; grams: number };
 
@@ -50,15 +50,17 @@ const TEMPLATE_LIBRARY_RAW: Template[] = [
     id: "mould",
     title: "模具/公仔（柱蜡体系，圣诞树等）",
     variants: [
-      { name: "蜂蜡 60% + 大豆 40%（最佳）", formula: [{ name: "Beeswax", pct: 60 }, { name: "Soy", pct: 40 }], fl: { rec: 7, range: "6–8%" }, best: true },
+      { name: "100% Pillar Soy（最佳）", formula: [{ name: "PillarSoy", pct: 100 }], fl: { rec: 7, range: "6–10%（建议从 5% 开始）" }, best: true },
+      { name: "蜂蜡 60% + 大豆 40%", formula: [{ name: "Beeswax", pct: 60 }, { name: "Soy", pct: 40 }], fl: { rec: 7, range: "6–8%" } },
       { name: "100% 蜂蜡", formula: [{ name: "Beeswax", pct: 100 }], fl: { rec: 6, range: "6–8%" } },
+      { name: "Pillar Soy 70% + 蜂蜡 30%", formula: [{ name: "PillarSoy", pct: 70 }, { name: "Beeswax", pct: 30 }], fl: { rec: 7, range: "6–9%" } },
       { name: "蜂蜡 80% + 椰子 20%", formula: [{ name: "Beeswax", pct: 80 }, { name: "Coconut", pct: 20 }], fl: { rec: 6.5, range: "6–7%" } },
       { name: "棕榈 60% + 蜂蜡 40%", formula: [{ name: "Palm", pct: 60 }, { name: "Beeswax", pct: 40 }], fl: { rec: 7, range: "6–8%" } },
       { name: "石蜡 80% + 蜂蜡 20%", formula: [{ name: "Paraffin", pct: 80 }, { name: "Beeswax", pct: 20 }], fl: { rec: 6.5, range: "6–7%" } },
       { name: "石蜡 90% + 大豆/棕榈 10%", formula: [{ name: "Paraffin", pct: 90 }, { name: "Palm", pct: 10 }], fl: { rec: 7, range: "6–8%" } },
     ],
-    temp: { addFO: 70, pour: 60 },
-    tip: "冷却后如顶部凹陷可二次回倒；控制收缩与脱模。",
+    temp: { addFO: 70, pour: 77 },
+    tip: "Pillar Soy：80–75°C 浇注，需二次回倒填充收缩；抗起霜、易脱模。其他配方：冷却后如顶部凹陷可二次回倒。",
   },
   {
     id: "piping",
@@ -128,6 +130,15 @@ function computeWaxFromWater({ waterGrams, count, factor = 1.15 }: { waterGrams:
 
 function calcLiquidDye(netWax: number, pct: number) { return Math.max(0, +(netWax * (pct / 100)).toFixed(3)); }
 function calcBlockCount(netWax: number, shadeMul = 1) { const blocks = (netWax / 3000) * shadeMul; return Math.max(0, +blocks.toFixed(2)); }
+// 计算液体染料滴数：根据说明书，5 drops 可以染 10g wax
+function calcLiquidDyeDrops(netWax: number, pct: number) {
+  // 5 drops = 10g wax，所以 1g wax = 0.5 drops
+  // 但需要考虑深浅度，以中深 0.05% 为基准，按比例调整
+  const baseDrops = (netWax / 10) * 5; // 基础滴数：每 10g 需要 5 滴
+  const shadeMultiplier = pct / 0.05; // 根据深浅度调整倍率（0.05% 为基准）
+  const totalDrops = baseDrops * shadeMultiplier;
+  return Math.max(0, Math.round(totalDrops));
+}
 
 // 颜色混合工具函数
 function mixColors(color1: string, color2: string, ratio: number) {
@@ -205,11 +216,12 @@ export default function CandleStudioApp() {
   const [hasC3, setHasC3] = useState<boolean>(true);
   const [hasBeeswaxYellow, setHasBeeswaxYellow] = useState<boolean>(true);
   const [hasBeeswaxWhite, setHasBeeswaxWhite] = useState<boolean>(false);
+  const [hasPillarSoy, setHasPillarSoy] = useState<boolean>(false);
 
   const [price, setPrice] = useState<Record<PriceKeys, string>>({
     GW464: "", GW454: "", C3: "",
     BeeswaxYellow: "", BeeswaxWhite: "",
-    Paraffin: "", Palm: "", "Ice Flower": "",
+    Paraffin: "", Palm: "", "Ice Flower": "", PillarSoy: "",
     Fragrance_perKg: "", DyeBlock_perBlock: "", LiquidDye_perKg: "", Wick_perUnit: "", Jar_perUnit: "",
   });
   
@@ -241,6 +253,7 @@ export default function CandleStudioApp() {
     if (typeof s.hasC3 === 'boolean') setHasC3(s.hasC3);
     if (typeof s.hasBeeswaxYellow === 'boolean') setHasBeeswaxYellow(s.hasBeeswaxYellow);
     if (typeof s.hasBeeswaxWhite === 'boolean') setHasBeeswaxWhite(s.hasBeeswaxWhite);
+    if (typeof s.hasPillarSoy === 'boolean') setHasPillarSoy(s.hasPillarSoy);
     if (s.price) setPrice(s.price);
   }, []);
 
@@ -251,13 +264,13 @@ export default function CandleStudioApp() {
         tplId, variantIndex,
         waterStr, countStr, factorStr, flPctStr,
         dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor,
-        has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite,
+        has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, hasPillarSoy,
         price,
       });
     }, 300); // 300ms 防抖，避免频繁写入
     
     return () => clearTimeout(timer);
-  }, [tplId, variantIndex, waterStr, countStr, factorStr, flPctStr, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor, has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, price]);
+  }, [tplId, variantIndex, waterStr, countStr, factorStr, flPctStr, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor, has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, hasPillarSoy, price]);
 
   const mapName = useCallback((n: WaxName): PriceKeys => {
     if (n === "Soy") return (has464 ? "GW464" : "GW454");
@@ -265,6 +278,7 @@ export default function CandleStudioApp() {
     if (n === "Beeswax") return hasBeeswaxYellow ? "BeeswaxYellow" : "BeeswaxWhite";
     if (n === "Paraffin") return "Paraffin";
     if (n === "Palm") return "Palm";
+    if (n === "PillarSoy") return "PillarSoy";
     return "Ice Flower";
   }, [has464, hasBeeswaxYellow]);
 
@@ -274,7 +288,7 @@ export default function CandleStudioApp() {
 
   const priceNum = useMemo(() => {
     const obj: Record<PriceKeys, number> = {
-      GW464: 0, GW454: 0, C3: 0, BeeswaxYellow: 0, BeeswaxWhite: 0, Paraffin: 0, Palm: 0, "Ice Flower": 0,
+      GW464: 0, GW454: 0, C3: 0, BeeswaxYellow: 0, BeeswaxWhite: 0, Paraffin: 0, Palm: 0, "Ice Flower": 0, PillarSoy: 0,
       Fragrance_perKg: 0, DyeBlock_perBlock: 0, LiquidDye_perKg: 0, Wick_perUnit: 0, Jar_perUnit: 0,
     };
     (Object.keys(obj) as PriceKeys[]).forEach((k)=>{ obj[k] = parseFloat(price[k] || "0") || 0; });
@@ -286,6 +300,7 @@ export default function CandleStudioApp() {
 
   const liquidPct = useMemo(() => (LIQUID_PRESETS as readonly {id: LiquidPresetId; label: string; pct: number}[]).find((p) => p.id === liquidPreset)?.pct ?? 0.05, [liquidPreset]);
   const liquidG = useMemo(() => calcLiquidDye(netWax, liquidPct), [netWax, liquidPct]);
+  const liquidDrops = useMemo(() => calcLiquidDyeDrops(netWax, liquidPct), [netWax, liquidPct]);
   const blockCount = useMemo(() => calcBlockCount(netWax, Number(blockShade) || 1), [netWax, blockShade]);
 
   const waxCost = useMemo(() => partsPriced.reduce((sum, p) => sum + kg(p.grams) * (priceNum[p.name] || 0), 0), [partsPriced, priceNum]);
@@ -301,7 +316,7 @@ export default function CandleStudioApp() {
       `装水称重: ${base.totalWater} g，换算因子: ${factor}`,
       `总倒料(含香精): ${base.totalWax} g；香精 ${flPct}% → ${fragranceG} g；净蜡: ${netWax} g`,
       `配方: ` + partsPriced.map((p) => `${p.name} ${p.pct}%→${p.grams} g`).join(" · "),
-      dyeMode === "block" ? `色块: ${dyeBlockColor}，深浅倍率×${blockShade} → 预计 ${blockCount} 块` : `液体染料: ${(LIQUID_PRESETS as readonly {id: LiquidPresetId; label: string; pct: number}[]).find(p=>p.id===liquidPreset)?.label} · 颜色 ${liquidColor} → 约 ${liquidG} g`,
+      dyeMode === "block" ? `色块: ${dyeBlockColor}，深浅倍率×${blockShade} → 预计 ${blockCount} 块` : `液体染料: ${(LIQUID_PRESETS as readonly {id: LiquidPresetId; label: string; pct: number}[]).find(p=>p.id===liquidPreset)?.label} · 颜色 ${liquidColor} → 约 ${liquidG} g（${liquidDrops} 滴）`,
       `流程: 加香约 ${tpl.temp.addFO}°C；浇注约 ${tpl.temp.pour}°C。推荐香精负载：${variant.fl.range}（默认 ${variant.fl.rec}%）`,
       `备注: ${tpl.tip}`,
       `— 成本 —`,
@@ -309,7 +324,7 @@ export default function CandleStudioApp() {
       `合计(批): ${totalCostBatch.toFixed(2)} AUD；单只: ${costPerCandle.toFixed(2)} AUD`
     ];
     return lines.join("\n");
-  }, [tpl, variant, base, factor, flPct, fragranceG, netWax, partsPriced, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidG, liquidColor, waxCost, fragranceCost, dyeCost, accessoriesCostBatch, totalCostBatch, costPerCandle, blockCount]);
+  }, [tpl, variant, base, factor, flPct, fragranceG, netWax, partsPriced, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidG, liquidDrops, liquidColor, waxCost, fragranceCost, dyeCost, accessoriesCostBatch, totalCostBatch, costPerCandle, blockCount]);
 
   const onSelectTpl = useCallback((id: string) => { setTplId(id); setVariantIndex(0); const t = TEMPLATE_LIBRARY.find((x)=>x.id===id) || TEMPLATE_LIBRARY[0]; setFlPctStr(String(t.variants[0].fl.rec)); }, []);
   const onSelectVariant = useCallback((idx: number) => { setVariantIndex(idx); const v = tpl.variants[idx] || tpl.variants[0]; setFlPctStr(String(v.fl.rec)); }, [tpl]);
@@ -326,7 +341,7 @@ export default function CandleStudioApp() {
         data: {
           tplId, variantIndex, waterStr, countStr, factorStr, flPctStr,
           dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor,
-          has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite,
+          has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, hasPillarSoy,
           price,
         }
       };
@@ -345,7 +360,7 @@ export default function CandleStudioApp() {
       console.error('导出失败:', error);
       alert('❌ 导出失败\n\n可能原因：\n- 浏览器安全限制\n- 存储空间不足\n\n请重试或联系技术支持。');
     }
-  }, [tplId, variantIndex, waterStr, countStr, factorStr, flPctStr, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor, has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, price]);
+  }, [tplId, variantIndex, waterStr, countStr, factorStr, flPctStr, dyeMode, dyeBlockColor, blockShade, liquidPreset, liquidColor, has464, has454, hasC3, hasBeeswaxYellow, hasBeeswaxWhite, hasPillarSoy, price]);
 
   // 优化：导入数据（改进错误处理和验证）
   const importData = useCallback(() => {
@@ -393,6 +408,7 @@ export default function CandleStudioApp() {
           if (typeof d.hasC3 === 'boolean') { setHasC3(d.hasC3); importedCount++; }
           if (typeof d.hasBeeswaxYellow === 'boolean') { setHasBeeswaxYellow(d.hasBeeswaxYellow); importedCount++; }
           if (typeof d.hasBeeswaxWhite === 'boolean') { setHasBeeswaxWhite(d.hasBeeswaxWhite); importedCount++; }
+          if (typeof d.hasPillarSoy === 'boolean') { setHasPillarSoy(d.hasPillarSoy); importedCount++; }
           if (d.price) { setPrice(d.price); importedCount++; }
           
           const exportDate = imported.exportDate ? new Date(imported.exportDate).toLocaleDateString('zh-CN') : '未知';
@@ -554,6 +570,10 @@ export default function CandleStudioApp() {
               <input type="checkbox" checked={hasBeeswaxWhite} onChange={(e)=>setHasBeeswaxWhite(e.target.checked)} className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer" />
               <span className="text-sm font-medium text-gray-700">Beeswax White</span>
             </label>
+            <label className="flex items-center gap-2.5 p-3 rounded-xl border-2 border-gray-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 cursor-pointer transition-all">
+              <input type="checkbox" checked={hasPillarSoy} onChange={(e)=>setHasPillarSoy(e.target.checked)} className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 focus:ring-2 cursor-pointer" />
+              <span className="text-sm font-medium text-gray-700">Pillar Soy</span>
+            </label>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 mt-3 text-sm">
             {[
@@ -565,6 +585,7 @@ export default function CandleStudioApp() {
               ["Paraffin","Paraffin (AUD/kg)"],
               ["Palm","Palm (AUD/kg)"],
               ["Ice Flower","Ice Flower (AUD/kg)"],
+              ["PillarSoy","Pillar Soy (AUD/kg)"],
               ["Fragrance_perKg","Fragrance (AUD/kg)"],
               ["DyeBlock_perBlock","Dye Block (AUD/块)"],
               ["LiquidDye_perKg","Liquid Dye (AUD/kg)"],
@@ -594,6 +615,7 @@ export default function CandleStudioApp() {
                 { key: "C3", show: hasC3 },
                 { key: "BeeswaxBlock", show: hasBeeswaxYellow },
                 { key: "BeeswaxPaleBeaded", show: hasBeeswaxWhite },
+                { key: "PillarSoy", show: hasPillarSoy },
                 { key: "Ice Flower", show: true },
               ];
               return cards.filter(c => c.show).map(c => {
@@ -701,7 +723,7 @@ export default function CandleStudioApp() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   选择色块颜色（共 {DYE_BLOCK_COLORS.length} 种）
                 </label>
-                <div className="grid grid-cols-6 sm:grid-cols-7 md:grid-cols-9 gap-1.5 sm:gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-9 gap-1.5 sm:gap-2">
                   {DYE_BLOCK_COLORS.map((color) => {
                     const isSelected = dyeBlockColor === color;
                     const displayColor = getShadeColor(SWATCH(color), blockShade);
@@ -721,7 +743,7 @@ export default function CandleStudioApp() {
                           className="w-full h-8 sm:h-10 md:h-12 rounded-md mb-1 border border-gray-300"
                           style={{ background: displayColor }}
                         />
-                        <div className="text-[9px] sm:text-[10px] font-medium text-gray-700 text-center leading-tight line-clamp-1">
+                        <div className="text-[10px] sm:text-[11px] font-medium text-gray-700 text-center leading-tight truncate px-0.5">
                           {color}
                         </div>
                         {isSelected && (
@@ -812,7 +834,7 @@ export default function CandleStudioApp() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   选择液体颜色（共 {LIQUID_DYE_COLORS.length} 种）
                 </label>
-                <div className="mt-1 grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 gap-1.5 sm:gap-2">
+                <div className="mt-1 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-1.5 sm:gap-2">
                   {LIQUID_DYE_COLORS.map(c => (
                     <button 
                       key={c.name} 
@@ -828,7 +850,7 @@ export default function CandleStudioApp() {
                         className="w-full h-8 sm:h-10 rounded border border-gray-300" 
                         style={{background: LIQUID_SWATCH(c.name)}}
                       />
-                      <span className="text-[9px] sm:text-[10px] font-medium text-gray-700 text-center leading-tight line-clamp-1 w-full">
+                      <span className="text-[10px] sm:text-[11px] font-medium text-gray-700 text-center leading-tight truncate w-full px-0.5">
                         {c.name}
                       </span>
                       {liquidColor===c.name && (
@@ -845,8 +867,11 @@ export default function CandleStudioApp() {
                 <select className="mt-1 w-full border rounded-xl px-3 py-2 h-11" value={liquidPreset} onChange={(e)=>setLiquidPreset(e.target.value as LiquidPresetId)}>
                   {(LIQUID_PRESETS as readonly {id: LiquidPresetId; label: string; pct: number}[]).map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                 </select>
-                <div className="rounded-xl border p-3 text-sm bg-gray-50">预计液体染料：<span className="font-mono text-lg">{liquidG}</span> g</div>
-                <div className="text-[11px] text-gray-500">参考：10 ml ≈ 1 kg 蜡（中深度），不同颜色会有差异。建议先做小样测试，确认颜色后再大批量制作。</div>
+                <div className="rounded-xl border p-3 text-sm bg-gray-50">
+                  <div className="mb-2">预计液体染料：<span className="font-mono text-lg font-semibold text-amber-700">{liquidG}</span> g</div>
+                  <div className="border-t border-gray-300 pt-2">预计滴数：<span className="font-mono text-lg font-semibold text-amber-700">{liquidDrops}</span> 滴</div>
+                </div>
+                <div className="text-[11px] text-gray-500">参考：说明书标准为 5 滴/10g 蜡（中深度），不同颜色和深浅度会有差异。建议先做小样测试，确认颜色后再大批量制作。</div>
               </div>
             </div>
           )}
@@ -860,7 +885,7 @@ export default function CandleStudioApp() {
               <ul className="list-disc pl-5 mt-2">
                 {partsPriced.map((p) => (<li key={p.name}>{p.name}：<span className="font-mono">{p.grams} g</span>（{p.pct}%）</li>))}
               </ul>
-              {dyeMode==='block' ? (<div className="mt-2">色块：{dyeBlockColor} × <span className="font-mono">{blockCount}</span> 块</div>) : (<div className="mt-2">液体染料：<span className="font-mono">{liquidG}</span> g</div>)}
+              {dyeMode==='block' ? (<div className="mt-2">色块：{dyeBlockColor} × <span className="font-mono">{blockCount}</span> 块</div>) : (<div className="mt-2">液体染料：<span className="font-mono">{liquidG}</span> g（<span className="font-mono">{liquidDrops}</span> 滴）</div>)}
             </div>
             <div className="text-xs text-gray-600 leading-5">
               <div className="font-medium text-gray-800 mb-1">专业流程建议</div>

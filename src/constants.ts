@@ -117,7 +117,7 @@ export const LIQUID_SWATCH = (c: LiquidColorName): string => {
 };
 
 // ===== 蜡材信息 =====
-export type WaxKey = "GW464" | "GW454" | "C3" | "BeeswaxBlock" | "BeeswaxPaleBeaded" | "Ice Flower";
+export type WaxKey = "GW464" | "GW454" | "C3" | "BeeswaxBlock" | "BeeswaxPaleBeaded" | "Ice Flower" | "PillarSoy";
 
 export const WAX_INFO: Record<WaxKey, {
   name: string;
@@ -181,6 +181,15 @@ export const WAX_INFO: Record<WaxKey, {
     fragranceLoad: "3–6%",
     suitable: "装饰蜡、晶体纹理效果",
     properties: "冷却时形成独特晶体裂纹纹理，需均匀缓冷",
+  },
+  "PillarSoy": {
+    name: "Pillar Soy Wax（柱状大豆蜡）",
+    type: "100% 大豆蜡（柱状专用）",
+    meltPoint: "约 50–55°C",
+    pourTemp: "80–75°C（需二次回倒）",
+    fragranceLoad: "6–10%（建议从 5% 开始）",
+    suitable: "柱状蜡烛、许愿蜡烛、蜡块、塔状蜡烛",
+    properties: "抗起霜、易脱模、颜色鲜艳、冷热香精散发好、颗粒状易测量",
   },
 };
 
